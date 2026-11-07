@@ -3,6 +3,9 @@ package com.aigents.start.controller;
 import com.aigents.start.service.OrderAiAgents;
 import com.aigents.start.service.OrderService;
 import com.aigents.start.service.OrderSupportAiAgents;
+import com.aigents.start.agents.WorkflowSupportAgent;
+
+import opennlp.tools.stemmer.snowball.finnishStemmer;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,15 +21,17 @@ public class AiSupportController {
     private final OrderAiAgents orderAiAgents;
     private final OrderSupportAiAgents orderSupportAiAgents;
     private final OrderService orderService;
+    private final WorkflowSupportAgent workflowSupportAgent;
 
     public AiSupportController(
             OrderAiAgents orderAiAgents,
             OrderSupportAiAgents orderSupportAiAgents,
-            OrderService orderService
-    ) {
+            OrderService orderService,
+            WorkflowSupportAgent workflowSupportAgent) {
         this.orderAiAgents = orderAiAgents;
         this.orderSupportAiAgents = orderSupportAiAgents;
         this.orderService = orderService;
+        this.workflowSupportAgent = workflowSupportAgent;
     }
 
     /**
@@ -48,12 +53,16 @@ public class AiSupportController {
         return orderSupportAiAgents.chat(message);
     }
 
+    @GetMapping("/workflow-chat")
+    public String workFlowChat(@RequestParam String message) {
+        return workflowSupportAgent.handle(message);
+    }
+
     @GetMapping("/chat-context")
     public String chatWithContext(
             @RequestParam String customerName,
             @RequestParam String orderId,
-            @RequestParam String message
-    ) {
+            @RequestParam String message) {
         return orderAiAgents.chatWithContext(customerName, orderId, message);
     }
 
@@ -62,8 +71,7 @@ public class AiSupportController {
         String rewritten = orderAiAgents.rewriteQuery(query);
         return Map.of(
                 "originalQuery", query,
-                "rewrittenQuery", rewritten
-        );
+                "rewrittenQuery", rewritten);
     }
 
     @GetMapping("/smart-chat")
@@ -73,7 +81,6 @@ public class AiSupportController {
         return Map.of(
                 "originalMessage", message,
                 "rewrittenQuery", rewrittenQuery,
-                "response", response
-        );
+                "response", response);
     }
 }
